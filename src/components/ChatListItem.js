@@ -11,7 +11,7 @@ export function ChatListItem({ chat }) {
         <View className="min-w-0 flex-1">
           <View className="flex-row items-center justify-between gap-3">
             <Text className="text-base font-bold text-ink">{chat.name}</Text>
-            <Text className="text-xs text-slate-400">{chat.time}</Text>
+            {chat.time ? <Text className="text-xs text-slate-400">{chat.time}</Text> : null}
           </View>
           <Text className="mt-1 text-sm text-slate-500" numberOfLines={1}>
             {chat.preview}

@@ -1,7 +1,7 @@
 import { Text, View } from "react-native";
 
-export function MessageBubble({ message }) {
-  const mine = message.senderId === "me";
+export function MessageBubble({ currentUserId = "me", message }) {
+  const mine = message.senderId === currentUserId;
 
   return (
     <View className={`max-w-[82%] ${mine ? "self-end" : "self-start"}`}>

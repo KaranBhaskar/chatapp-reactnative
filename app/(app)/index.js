@@ -4,11 +4,12 @@ import { Button } from "../../src/components/Button";
 import { ChatListItem } from "../../src/components/ChatListItem";
 import { EmptyState } from "../../src/components/EmptyState";
 import { Screen } from "../../src/components/Screen";
-import { mockChats } from "../../src/data/mockData";
+import { useChats } from "../../src/hooks/useChats";
 import { useAuthUser } from "../../src/hooks/useAuthUser";
 
 export default function ChatListScreen() {
   const { user } = useAuthUser();
+  const { chats, error, loading } = useChats();
 
   return (
     <Screen>
@@ -26,10 +27,18 @@ export default function ChatListScreen() {
         <Button label="New chat" href="/new-chat" />
 
         <View className="gap-3">
-          {mockChats.length > 0 ? (
-            mockChats.map((chat) => <ChatListItem key={chat.id} chat={chat} />)
+          {error ? (
+            <View className="rounded-lg border border-coral/30 bg-white p-4">
+              <Text className="text-sm font-bold text-coral">{error}</Text>
+            </View>
+          ) : null}
+
+          {loading ? (
+            <EmptyState title="Loading chats" subtitle="Firestore is checking chats that include your uid." />
+          ) : chats.length > 0 ? (
+            chats.map((chat) => <ChatListItem key={chat.id} chat={chat} />)
           ) : (
-            <EmptyState title="No chats yet" subtitle="Create a chat after Firebase users exist." />
+            <EmptyState title="No chats yet" subtitle="Tap New chat to start a direct chat with another test user." />
           )}
         </View>
       </View>

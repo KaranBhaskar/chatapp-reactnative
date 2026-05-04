@@ -1,0 +1,77 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function isChatMember(chatId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/chats/$(chatId))
+        && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.memberIds;
+    }
+
+    function validChatCreate() {
+      return signedIn()
+        && request.resource.data.type == "direct"
+        && request.resource.data.memberIds is list
+        && request.resource.data.memberIds.size() == 2
+        && request.auth.uid in request.resource.data.memberIds
+        && request.resource.data.createdBy == request.auth.uid;
+    }
+
+    function sameMembers() {
+      return request.resource.data.memberIds == resource.data.memberIds;
+    }
+
+    function validTextMessage() {
+      return signedIn()
+        && request.resource.data.type == "text"
+        && request.resource.data.senderId == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 2000
+        && request.resource.data.attachmentIds is list
+        && request.resource.data.attachmentIds.size() == 0
+        && request.resource.data.deletedForEveryone == false;
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create: if isSelf(uid)
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email is string;
+      allow update: if isSelf(uid)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.email == resource.data.email;
+      allow delete: if false;
+    }
+
+    match /chats/{chatId} {
+      allow read: if signedIn() && request.auth.uid in resource.data.memberIds;
+      allow create: if validChatCreate();
+      allow update: if signedIn()
+        && request.auth.uid in resource.data.memberIds
+        && sameMembers();
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if isChatMember(chatId);
+        allow create: if isChatMember(chatId) && validTextMessage();
+        allow update, delete: if false;
+      }
+
+      match /attachments/{attachmentId} {
+        allow read: if isChatMember(chatId);
+        allow create: if isChatMember(chatId)
+          && request.resource.data.uploadedBy == request.auth.uid;
+        allow update, delete: if false;
+      }
+    }
+  }
+}
