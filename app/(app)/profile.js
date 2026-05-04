@@ -1,19 +1,47 @@
 import { Link } from "expo-router";
+import { useState } from "react";
 import { Text, View } from "react-native";
 
 import { Avatar } from "../../src/components/Avatar";
 import { Button } from "../../src/components/Button";
 import { Screen } from "../../src/components/Screen";
+import { useAuthUser } from "../../src/hooks/useAuthUser";
+
+function initialsForUser(user) {
+  const source = user?.displayName || user?.email || "User";
+  return source
+    .split(/[ @._-]/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
 
 export default function ProfileScreen() {
+  const { formatAuthError, signOutAndClearCache, user } = useAuthUser();
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSignOut() {
+    setError("");
+    setLoading(true);
+
+    try {
+      await signOutAndClearCache();
+    } catch (nextError) {
+      setError(formatAuthError(nextError));
+      setLoading(false);
+    }
+  }
+
   return (
     <Screen>
       <View className="gap-8">
         <View className="items-center gap-3">
-          <Avatar label="KB" size="large" />
+          <Avatar label={initialsForUser(user)} size="large" />
           <View className="items-center">
-            <Text className="text-2xl font-bold text-ink">Karan Bhaskar</Text>
-            <Text className="text-sm text-slate-500">karan@example.com</Text>
+            <Text className="text-2xl font-bold text-ink">{user?.displayName || "Signed-in user"}</Text>
+            <Text className="text-sm text-slate-500">{user?.email}</Text>
           </View>
         </View>
 
@@ -25,7 +53,13 @@ export default function ProfileScreen() {
           </Text>
         </View>
 
-        <Button label="Sign out" href="/sign-in" variant="danger" />
+        {error ? (
+          <View className="rounded-lg border border-coral/30 bg-white p-4">
+            <Text className="text-sm font-bold text-coral">{error}</Text>
+          </View>
+        ) : null}
+
+        <Button label="Sign out" variant="danger" loading={loading} onPress={handleSignOut} />
 
         <Link href="/" className="text-center text-sm font-semibold text-fern">
           Back to chats

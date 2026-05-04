@@ -5,23 +5,25 @@ import { ChatListItem } from "../../src/components/ChatListItem";
 import { EmptyState } from "../../src/components/EmptyState";
 import { Screen } from "../../src/components/Screen";
 import { mockChats } from "../../src/data/mockData";
+import { useAuthUser } from "../../src/hooks/useAuthUser";
 
 export default function ChatListScreen() {
+  const { user } = useAuthUser();
+
   return (
     <Screen>
       <View className="gap-6">
         <View className="flex-row items-center justify-between">
           <View>
             <Text className="text-3xl font-bold text-ink">Chats</Text>
-            <Text className="mt-1 text-sm text-slate-500">Firestore chat list lands here.</Text>
+            <Text className="mt-1 text-sm text-slate-500">
+              Signed in as {user?.email}. Firestore chat list lands here.
+            </Text>
           </View>
           <Button label="Profile" href="/profile" variant="secondary" />
         </View>
 
-        <View className="flex-row gap-3">
-          <Button label="New chat" href="/new-chat" className="flex-1" />
-          <Button label="Sign out" href="/sign-in" variant="secondary" className="flex-1" />
-        </View>
+        <Button label="New chat" href="/new-chat" />
 
         <View className="gap-3">
           {mockChats.length > 0 ? (

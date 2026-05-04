@@ -5,9 +5,11 @@ import { Button } from "../../../src/components/Button";
 import { MessageBubble } from "../../../src/components/MessageBubble";
 import { Screen } from "../../../src/components/Screen";
 import { mockMessages } from "../../../src/data/mockData";
+import { useAuthUser } from "../../../src/hooks/useAuthUser";
 
 export default function ChatRoomScreen() {
   const { chatId } = useLocalSearchParams();
+  const { user } = useAuthUser();
 
   return (
     <Screen className="pb-0">
@@ -32,9 +34,10 @@ export default function ChatRoomScreen() {
           <View className="flex-row items-center gap-3 border-t border-slate-200 bg-white py-4">
             <TextInput
               placeholder="Message"
+              editable={Boolean(user)}
               className="min-h-12 flex-1 rounded-lg border border-slate-200 bg-slate-50 px-4 text-base text-ink"
             />
-            <Button label="Send" />
+            <Button label="Send" disabled={!user} />
           </View>
         </View>
       </KeyboardAvoidingView>

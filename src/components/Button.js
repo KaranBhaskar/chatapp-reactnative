@@ -1,5 +1,5 @@
 import { Link } from "expo-router";
-import { Pressable, Text } from "react-native";
+import { ActivityIndicator, Pressable, Text } from "react-native";
 
 const variants = {
   primary: "bg-fern",
@@ -13,12 +13,17 @@ const textVariants = {
   danger: "text-white",
 };
 
-function ButtonBase({ label, variant = "primary", className = "", ...props }) {
+function ButtonBase({ disabled = false, label, loading = false, variant = "primary", className = "", ...props }) {
   return (
     <Pressable
-      className={`min-h-12 items-center justify-center rounded-lg px-4 ${variants[variant]} ${className}`}
+      className={`min-h-12 items-center justify-center rounded-lg px-4 ${variants[variant]} ${disabled ? "opacity-50" : ""} ${className}`}
+      disabled={disabled || loading}
       {...props}>
-      <Text className={`text-sm font-bold ${textVariants[variant]}`}>{label}</Text>
+      {loading ? (
+        <ActivityIndicator color={variant === "secondary" ? "#182230" : "#ffffff"} />
+      ) : (
+        <Text className={`text-sm font-bold ${textVariants[variant]}`}>{label}</Text>
+      )}
     </Pressable>
   );
 }
