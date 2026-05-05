@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
-import { sendTextMessage, subscribeToMessages } from "../firebase/firestore";
+import { sendMediaMessage, sendTextMessage, subscribeToMessages } from "../firebase/firestore";
+import { uploadChatMedia } from "../firebase/media";
 import { useAuthUser } from "./useAuthUser";
 
 export function useMessages(chatId) {
@@ -8,6 +9,8 @@ export function useMessages(chatId) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(Boolean(firebaseReady && user && chatId));
   const [messages, setMessages] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploading, setUploading] = useState(false);
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
@@ -37,7 +40,7 @@ export function useMessages(chatId) {
 
   async function sendMessage(text) {
     if (!user || !chatId) {
-      return;
+      return false;
     }
 
     setSending(true);
@@ -45,12 +48,41 @@ export function useMessages(chatId) {
 
     try {
       await sendTextMessage({ chatId, currentUser: user, text });
+      return true;
     } catch (nextError) {
       setError(formatAuthError(nextError));
+      return false;
     } finally {
       setSending(false);
     }
   }
 
-  return { error, loading, messages, sendMessage, sending };
+  async function sendMedia(media, caption = "") {
+    if (!user || !chatId || !media) {
+      return false;
+    }
+
+    setUploading(true);
+    setUploadProgress(0);
+    setError("");
+
+    try {
+      const attachment = await uploadChatMedia({
+        chatId,
+        media,
+        onProgress: setUploadProgress,
+      });
+
+      await sendMediaMessage({ attachment, caption, chatId, currentUser: user });
+      setUploadProgress(1);
+      return true;
+    } catch (nextError) {
+      setError(formatAuthError(nextError));
+      return false;
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return { error, loading, messages, sendMedia, sendMessage, sending, uploadProgress, uploading };
 }

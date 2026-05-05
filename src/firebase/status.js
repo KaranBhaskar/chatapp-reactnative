@@ -1,8 +1,8 @@
-import { isFirebaseConfigured, missingFirebaseConfigKeys } from "./env";
+import { isFirebaseConfigured } from "./env";
 
 export function assertFirebaseReady() {
   if (!isFirebaseConfigured) {
-    throw new Error(`Firebase config is missing: ${missingFirebaseConfigKeys.join(", ")}`);
+    throw new Error("Service is unavailable. Try again soon.");
   }
 }
 
@@ -27,6 +27,14 @@ export function formatAuthError(error) {
 
   if (code === "auth/popup-closed-by-user") {
     return "Google sign-in was closed before it finished.";
+  }
+
+  if (code === "permission-denied") {
+    return "We couldn't complete that action. Please try again.";
+  }
+
+  if (code === "functions/internal") {
+    return "We couldn't reach the service. Please try again.";
   }
 
   return error?.message || "Something went wrong. Try again.";

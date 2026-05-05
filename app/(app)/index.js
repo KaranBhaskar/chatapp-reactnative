@@ -5,10 +5,8 @@ import { ChatListItem } from "../../src/components/ChatListItem";
 import { EmptyState } from "../../src/components/EmptyState";
 import { Screen } from "../../src/components/Screen";
 import { useChats } from "../../src/hooks/useChats";
-import { useAuthUser } from "../../src/hooks/useAuthUser";
 
 export default function ChatListScreen() {
-  const { user } = useAuthUser();
   const { chats, error, loading } = useChats();
 
   return (
@@ -17,9 +15,7 @@ export default function ChatListScreen() {
         <View className="flex-row items-center justify-between">
           <View>
             <Text className="text-3xl font-bold text-ink">Chats</Text>
-            <Text className="mt-1 text-sm text-slate-500">
-              Signed in as {user?.email}. Firestore chat list lands here.
-            </Text>
+            <Text className="mt-1 text-sm text-slate-500">Pick up where your conversations left off.</Text>
           </View>
           <Button label="Profile" href="/profile" variant="secondary" />
         </View>
@@ -34,11 +30,11 @@ export default function ChatListScreen() {
           ) : null}
 
           {loading ? (
-            <EmptyState title="Loading chats" subtitle="Firestore is checking chats that include your uid." />
+            <EmptyState title="Loading chats" />
           ) : chats.length > 0 ? (
             chats.map((chat) => <ChatListItem key={chat.id} chat={chat} />)
           ) : (
-            <EmptyState title="No chats yet" subtitle="Tap New chat to start a direct chat with another test user." />
+            <EmptyState title="No chats yet" subtitle="Tap New chat to start a conversation." />
           )}
         </View>
       </View>

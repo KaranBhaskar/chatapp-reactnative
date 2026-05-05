@@ -150,3 +150,52 @@ export async function sendTextMessage({ chatId, currentUser, text }) {
 
   await batch.commit();
 }
+
+export async function sendMediaMessage({ attachment, caption = "", chatId, currentUser }) {
+  assertFirebaseReady();
+
+  const cleanCaption = caption.trim();
+  const chatRef = doc(db, FIREBASE_PATHS.chats, chatId);
+  const attachmentRef = doc(db, FIREBASE_PATHS.chats, chatId, FIREBASE_PATHS.attachments, attachment.attachmentId);
+  const messageRef = doc(collection(db, FIREBASE_PATHS.chats, chatId, FIREBASE_PATHS.messages));
+  const previewText = cleanCaption || (attachment.type === "video" ? "Video" : "Photo");
+  const attachmentSummary = {
+    contentType: attachment.contentType,
+    downloadURL: attachment.downloadURL,
+    durationMillis: attachment.durationMillis || null,
+    height: attachment.height || null,
+    id: attachment.attachmentId,
+    sizeBytes: attachment.sizeBytes || null,
+    storagePath: attachment.storagePath,
+    type: attachment.type,
+    width: attachment.width || null,
+  };
+  const batch = writeBatch(db);
+
+  batch.set(attachmentRef, {
+    ...attachmentSummary,
+    uploadedBy: currentUser.uid,
+    createdAt: serverTimestamp(),
+    messageId: messageRef.id,
+  });
+
+  batch.set(messageRef, {
+    type: "media",
+    text: cleanCaption,
+    senderId: currentUser.uid,
+    createdAt: serverTimestamp(),
+    clientCreatedAt: new Date().toISOString(),
+    attachmentIds: [attachment.attachmentId],
+    attachments: [attachmentSummary],
+    deletedForEveryone: false,
+  });
+
+  batch.update(chatRef, {
+    updatedAt: serverTimestamp(),
+    lastMessageText: previewText,
+    lastMessageAt: serverTimestamp(),
+    lastMessageSenderId: currentUser.uid,
+  });
+
+  await batch.commit();
+}

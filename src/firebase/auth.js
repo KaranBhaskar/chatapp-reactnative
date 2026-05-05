@@ -51,7 +51,7 @@ export async function signInWithGoogle() {
   assertFirebaseReady();
 
   if (Platform.OS !== "web") {
-    throw new Error("Google sign-in on native needs Expo AuthSession/client IDs. Web popup is wired first.");
+    throw new Error("Google sign-in is unavailable on this device.");
   }
 
   const provider = new GoogleAuthProvider();

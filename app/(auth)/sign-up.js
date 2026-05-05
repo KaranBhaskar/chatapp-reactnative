@@ -10,7 +10,7 @@ import { useAuthUser } from "../../src/hooks/useAuthUser";
 
 export default function SignUpScreen() {
   const router = useRouter();
-  const { firebaseMissingKeys, firebaseReady, formatAuthError } = useAuthUser();
+  const { firebaseReady, formatAuthError } = useAuthUser();
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -36,17 +36,13 @@ export default function SignUpScreen() {
       <View className="gap-8">
         <View className="gap-3">
           <Text className="text-4xl font-bold text-ink">Create account</Text>
-          <Text className="text-base leading-6 text-slate-600">
-            This creates a Firebase Auth user and then writes a users/uid profile document.
-          </Text>
+          <Text className="text-base leading-6 text-slate-600">Join the conversation in a few seconds.</Text>
         </View>
 
         {!firebaseReady ? (
           <View className="rounded-lg border border-coral/30 bg-white p-4">
-            <Text className="text-sm font-bold text-coral">Firebase config needed</Text>
-            <Text className="mt-2 text-sm leading-5 text-slate-600">
-              Add values to .env.local for: {firebaseMissingKeys.join(", ")}
-            </Text>
+            <Text className="text-sm font-bold text-coral">Service unavailable</Text>
+            <Text className="mt-2 text-sm leading-5 text-slate-600">Please try again soon.</Text>
           </View>
         ) : null}
 

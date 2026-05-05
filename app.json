@@ -23,11 +23,17 @@
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Mock Chat App uses your photos and videos when you choose media to share in a chat."
+        }
+      ],
       [
         "expo-splash-screen",
         {

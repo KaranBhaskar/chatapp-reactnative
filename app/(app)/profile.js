@@ -46,11 +46,8 @@ export default function ProfileScreen() {
         </View>
 
         <View className="rounded-lg border border-slate-200 bg-white p-4">
-          <Text className="text-base font-semibold text-ink">Sign out behavior</Text>
-          <Text className="mt-2 text-sm leading-5 text-slate-500">
-            Iteration 2 connects this button to Firebase Auth, blocks message sending, and clears
-            local private cache.
-          </Text>
+          <Text className="text-base font-semibold text-ink">Account</Text>
+          <Text className="mt-2 text-sm leading-5 text-slate-500">Manage your session from this device.</Text>
         </View>
 
         {error ? (

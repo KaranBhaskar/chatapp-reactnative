@@ -16,6 +16,14 @@ service cloud.firestore {
         && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.memberIds;
     }
 
+    function chatMissingOrMember(chatId) {
+      return signedIn()
+        && (
+          !exists(/databases/$(database)/documents/chats/$(chatId))
+          || request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.memberIds
+        );
+    }
+
     function validChatCreate() {
       return signedIn()
         && request.resource.data.type == "direct"
@@ -29,16 +37,57 @@ service cloud.firestore {
       return request.resource.data.memberIds == resource.data.memberIds;
     }
 
-    function validTextMessage() {
+    function validMessageBase() {
       return signedIn()
-        && request.resource.data.type == "text"
         && request.resource.data.senderId == request.auth.uid
         && request.resource.data.text is string
-        && request.resource.data.text.size() > 0
         && request.resource.data.text.size() <= 2000
         && request.resource.data.attachmentIds is list
-        && request.resource.data.attachmentIds.size() == 0
         && request.resource.data.deletedForEveryone == false;
+    }
+
+    function validTextMessage() {
+      return validMessageBase()
+        && request.resource.data.type == "text"
+        && request.resource.data.text.size() > 0
+        && request.resource.data.attachmentIds.size() == 0
+        && !request.resource.data.keys().hasAny(["attachments"]);
+    }
+
+    function validMediaMessage(chatId) {
+      return validMessageBase()
+        && request.resource.data.type == "media"
+        && request.resource.data.attachmentIds.size() == 1
+        && request.resource.data.attachments is list
+        && request.resource.data.attachments.size() == 1
+        && request.resource.data.attachments[0].id == request.resource.data.attachmentIds[0]
+        && request.resource.data.attachments[0].type in ["image", "video"]
+        && request.resource.data.attachments[0].downloadURL is string
+        && request.resource.data.attachments[0].storagePath is string
+        && existsAfter(/databases/$(database)/documents/chats/$(chatId)/attachments/$(request.resource.data.attachmentIds[0]));
+    }
+
+    function validAttachmentCreate() {
+      return signedIn()
+        && request.resource.data.keys().hasOnly([
+          "contentType",
+          "createdAt",
+          "downloadURL",
+          "durationMillis",
+          "height",
+          "id",
+          "messageId",
+          "sizeBytes",
+          "storagePath",
+          "type",
+          "uploadedBy",
+          "width"
+        ])
+        && request.resource.data.type in ["image", "video"]
+        && request.resource.data.contentType is string
+        && request.resource.data.downloadURL is string
+        && request.resource.data.storagePath is string
+        && request.resource.data.uploadedBy == request.auth.uid;
     }
 
     match /users/{uid} {
@@ -53,7 +102,8 @@ service cloud.firestore {
     }
 
     match /chats/{chatId} {
-      allow read: if signedIn() && request.auth.uid in resource.data.memberIds;
+      allow get: if chatMissingOrMember(chatId);
+      allow list: if signedIn() && request.auth.uid in resource.data.memberIds;
       allow create: if validChatCreate();
       allow update: if signedIn()
         && request.auth.uid in resource.data.memberIds
@@ -62,14 +112,14 @@ service cloud.firestore {
 
       match /messages/{messageId} {
         allow read: if isChatMember(chatId);
-        allow create: if isChatMember(chatId) && validTextMessage();
+        allow create: if isChatMember(chatId)
+          && (validTextMessage() || validMediaMessage(chatId));
         allow update, delete: if false;
       }
 
       match /attachments/{attachmentId} {
         allow read: if isChatMember(chatId);
-        allow create: if isChatMember(chatId)
-          && request.resource.data.uploadedBy == request.auth.uid;
+        allow create: if isChatMember(chatId) && validAttachmentCreate();
         allow update, delete: if false;
       }
     }

@@ -45,9 +45,7 @@ export default function NewChatScreen() {
       <View className="gap-6">
         <View>
           <Text className="text-3xl font-bold text-ink">Start a chat</Text>
-          <Text className="mt-2 text-sm leading-5 text-slate-500">
-            This reads the users collection and shows every signed-up test user except you.
-          </Text>
+          <Text className="mt-2 text-sm leading-5 text-slate-500">Choose someone to message.</Text>
         </View>
 
         {error || actionError ? (
@@ -58,10 +56,10 @@ export default function NewChatScreen() {
 
         <View className="gap-3">
           {loading ? (
-            <Text className="rounded-lg bg-white p-4 text-sm text-slate-500">Loading users from Firestore...</Text>
+            <Text className="rounded-lg bg-white p-4 text-sm text-slate-500">Loading people...</Text>
           ) : users.length === 0 ? (
             <Text className="rounded-lg bg-white p-4 text-sm leading-5 text-slate-500">
-              No other users yet. Create another test account, then come back here.
+              No one else is here yet.
             </Text>
           ) : null}
 

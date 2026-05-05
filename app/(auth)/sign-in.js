@@ -1,6 +1,6 @@
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { Platform, Text, View } from "react-native";
 
 import { Button } from "../../src/components/Button";
 import { Screen } from "../../src/components/Screen";
@@ -10,7 +10,8 @@ import { useAuthUser } from "../../src/hooks/useAuthUser";
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { firebaseMissingKeys, firebaseReady, formatAuthError } = useAuthUser();
+  const { firebaseReady, formatAuthError } = useAuthUser();
+  const supportsGoogleSignIn = Platform.OS === "web";
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loadingProvider, setLoadingProvider] = useState("");
@@ -49,17 +50,13 @@ export default function SignInScreen() {
       <View className="gap-8">
         <View className="gap-3">
           <Text className="text-4xl font-bold text-ink">MockChat</Text>
-          <Text className="text-base leading-6 text-slate-600">
-            Sign in to open your chats. This screen now calls Firebase Auth when config exists.
-          </Text>
+          <Text className="text-base leading-6 text-slate-600">Sign in to open your chats.</Text>
         </View>
 
         {!firebaseReady ? (
           <View className="rounded-lg border border-coral/30 bg-white p-4">
-            <Text className="text-sm font-bold text-coral">Firebase config needed</Text>
-            <Text className="mt-2 text-sm leading-5 text-slate-600">
-              Add values to .env.local for: {firebaseMissingKeys.join(", ")}
-            </Text>
+            <Text className="text-sm font-bold text-coral">Service unavailable</Text>
+            <Text className="mt-2 text-sm leading-5 text-slate-600">Please try again soon.</Text>
           </View>
         ) : null}
 
@@ -90,13 +87,15 @@ export default function SignInScreen() {
             loading={loadingProvider === "email"}
             onPress={handleEmailSignIn}
           />
-          <Button
-            label="Continue with Google"
-            variant="secondary"
-            disabled={!firebaseReady}
-            loading={loadingProvider === "google"}
-            onPress={handleGoogleSignIn}
-          />
+          {supportsGoogleSignIn ? (
+            <Button
+              label="Continue with Google"
+              variant="secondary"
+              disabled={!firebaseReady}
+              loading={loadingProvider === "google"}
+              onPress={handleGoogleSignIn}
+            />
+          ) : null}
         </View>
 
         <View className="flex-row justify-center gap-1">

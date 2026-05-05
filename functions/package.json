@@ -1,0 +1,13 @@
+{
+  "name": "mock-chat-app-functions",
+  "description": "Cloud Functions for the mock chat app learning project.",
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "firebase-admin": "^13.6.0",
+    "firebase-functions": "^7.0.0"
+  }
+}
